@@ -34,3 +34,10 @@
 #Directories
 **/cmake-build-debug/
 **/.idea
+
+.idea/
+*.iml
+*.iws
+log/
+target/
+*.class
