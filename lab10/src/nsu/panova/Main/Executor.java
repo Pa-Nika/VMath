@@ -16,6 +16,7 @@ public class Executor {
     private final double a_ab = 3.0;
     private double b_ab = 1;
 
+
     public void work(){
         fillData();
 
