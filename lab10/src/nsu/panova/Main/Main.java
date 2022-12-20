@@ -2,6 +2,7 @@ package nsu.panova.Main;
 
 import nsu.panova.Main.NonLineral.CrossAB;
 import nsu.panova.Main.NonLineral.CrossSin;
+import nsu.panova.Main.NonLineral.ImplicitAB;
 import nsu.panova.Main.NonLineral.ImplicitSin;
 
 public class Main {
@@ -16,10 +17,13 @@ public class Main {
         CrossSin cross = new CrossSin();
         cross.work();
 
-        ImplicitSin implicit1 = new ImplicitSin();
-        implicit1.work();
+        ImplicitSin implicitSin = new ImplicitSin();
+        implicitSin.work();
 
         CrossAB crossAB = new CrossAB();
         crossAB.work();
+
+        ImplicitAB implicitAB = new ImplicitAB();
+        implicitAB.work();
     }
 }
