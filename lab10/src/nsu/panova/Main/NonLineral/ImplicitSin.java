@@ -4,12 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.sin;
+import static java.lang.Math.*;
+import static java.lang.Math.pow;
 
 public class ImplicitSin {
     private double[][] z_impl, z_real, z_impl_2;
-    private double[][] z_impl_ab, z_real_ab, z_impl_ab_2;
     private double x_start, x_end, y_end, h, tau, a, r;
     private int SIZE = 50;
     private int SIZEY;
@@ -18,64 +17,76 @@ public class ImplicitSin {
     private double[] x;
     private double[] b, c, d, k,u;
     private double[] uIterPrev, uIterCur;
-    private double eps = 0.001;
+    private double eps = 0.0001;
+    private double z = 0.1;
+    private int count = 0;
 
     public void work() {
-        SIZEY = SIZE;
+        double tmp;
         fillData();
         initZeroLevel();
         for (int i = 1; i < SIZEY; i++) {
-            if (findMaxConst(i - 1))
-                impl_sin(i);
-            else
-                System.out.println("ААААААААААА ВСЕ ПЛОХО Я УСТАЛА АААААААААААА");
+            tmp = countTau(i);
+            impl_sin(i, tmp);
         }
+        System.out.println(count);
+        count = 0;
 
         initZeroLevel2();
-        for (int i = 1; i < SIZE * 2; i++) {
-            if (findMaxConst2(i - 1))
-                impl_sin_2(i);
-            else
-                System.out.println("ААААААААААА ВСЕ ПЛОХО Я УСТАЛА АААААААААААА");
+        for (int i = 1; i < SIZEY * 2; i++) {
+            tmp = countTau2(i);
+            impl_sin_2(i, tmp);
         }
+        System.out.println(count);
+        count = 0;
         writeFirst();
     }
 
     private void fillData() {
-        SIZEY = SIZE;
-        x_start = 0;
-        x_end = 10;
-        y_end = 2;
-        h = (x_end - x_start) / SIZE;
-        System.out.println("h = " + h);
-        tau = (y_end) / SIZEY;
-        System.out.println("tau = " + tau);
+        SIZE = 50;
+        SIZEY = 25;
+        h = 0.2;
         a = 2;
+        tau = 0.04;
+        x_start = -1;
+        x_end = (h * SIZE) + x_start;
+        y_end = tau * SIZEY;
+        System.out.println("Нелинейная неявная схема sin. x_end = " + x_end + " y_end = " + y_end);
+        r = a * tau / h;
+        System.out.println("r = " + r);
 
-        if (a * tau / h <= 1 && a * tau / h >= 0) {
-            r = a * tau / h;
-            System.out.println("r = " + r);
-        } else {
-            System.out.println("Поменяйте параметры, пожалуйста");
-            System.exit(0);
-        }
 
-        z_impl = new double[SIZE][SIZEY];
-        z_impl_2 = new double[SIZE * 2][SIZEY * 2];
-        z_real = new double[SIZE][SIZEY];
-
-        z_impl_ab = new double[SIZE][SIZEY];
-        z_impl_ab_2 = new double[SIZE * 2][SIZEY * 2];
-        z_real_ab = new double[SIZE][SIZEY];
+        z_impl = new double[SIZEY][SIZE];
+        z_impl_2 = new double[SIZEY * 2][SIZE * 2];
 
         x = new double[3];
-        b = new double[SIZEY * 2];
-        c = new double[SIZEY * 2];
-        d = new double[SIZEY * 2];
-        k = new double[SIZEY * 2];
-        u = new double[SIZEY * 2];
-        uIterPrev = new double[SIZEY * 2];
-        uIterCur = new double[SIZEY * 2];
+        b = new double[SIZE * 2];
+        c = new double[SIZE * 2];
+        d = new double[SIZE * 2];
+        k = new double[SIZE * 2];
+        u = new double[SIZE * 2];
+        uIterPrev = new double[SIZE * 2];
+        uIterCur = new double[SIZE * 2];
+    }
+
+    private double countTau(int n) {
+        double max = 0;
+        for (int i = 0; i < SIZE; i++) {
+            if(abs(pow(z_impl[n - 1][i], 2) / 2) > max) {
+                max = abs(f(z_impl[n - 1][i]));
+            }
+        }
+        return z * h / max;
+    }
+
+    private double countTau2( int n) {
+        double max = 0;
+        for (int i = 0; i < SIZE * 2; i++) {
+            if(abs(pow(z_impl_2[n - 1][i], 2) / 2) > max) {
+                max = abs(f(z_impl_2[n - 1][i]));
+            }
+        }
+        return z * h / max;
     }
 
     private double func_sin(double x) {
@@ -91,6 +102,7 @@ public class ImplicitSin {
     }
 
     private boolean convergenceCondition() {
+        count++;
         for (int i = 0; i < SIZE; i++) {
             if (abs(uIterPrev[i] - uIterCur[i]) > eps)
                 return true;
@@ -111,35 +123,10 @@ public class ImplicitSin {
             z_impl[0][i] = func_sin(x_h);
             x_h += h;
         }
-    }
-
-
-    private boolean findMaxConst(int y) {
-        double max = 0;
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j <= y; j++) {
-                double tmp = abs(f(z_impl[i][j]));
-                if (tmp > max) {
-                    max = tmp;
-                }
-            }
+        for (int i = 1; i < SIZEY; i++) {
+            z_impl[i][0] = z_impl[0][0];
+            z_impl[i][SIZE - 1] = z_impl[0][SIZE - 1];
         }
-
-        return tau * max / h <= 1;
-    }
-
-    private boolean findMaxConst2(int y) {
-        double max = 0;
-        for (int i = 0; i < SIZE * 2; i++) {
-            for (int j = 0; j <= y; j++) {
-                double tmp = abs(f(z_impl_2[i][j]));
-                if (tmp > max) {
-                    max = tmp;
-                }
-            }
-        }
-
-        return tau * max / h <= 1;
     }
 
     private void initZeroLevel2() {
@@ -156,9 +143,13 @@ public class ImplicitSin {
             z_impl_2[0][i] = func_sin(x_h);
             x_h += new_h;
         }
+        for (int i = 1; i < SIZEY * 2; i++) {
+            z_impl_2[i][0] = z_impl_2[0][0];
+            z_impl_2[i][SIZE * 2 - 1] = z_impl_2[0][SIZE * 2 - 1];
+        }
     }
 
-    private void impl_sin_2(int n) {
+    private void impl_sin_2(int n, double tau_) {
         for (int i = 0; i < SIZE * 2; i++) {
             b[i] = c[i] = d[i] = 0;
             uIterPrev[i] = 1;
@@ -173,11 +164,11 @@ public class ImplicitSin {
 
             for(int i = 0; i < SIZE * 2; i++) {
                 if (i != 0) {
-                    b[i] = (-1) * tau * uIterPrev[i - 1] / (2 * h);
+                    b[i] = (-1) * tau_ * uIterPrev[i - 1] / (2 * h);
                 }
                 d[i] = z_impl_2[n - 1][i];
                 if (i != SIZE * 2 - 1) {
-                    c[i] = tau * uIterPrev[i + 1] /(2 *  h);
+                    c[i] = tau_ * uIterPrev[i + 1] /(2 *  h);
                 }
             }
 
@@ -197,10 +188,13 @@ public class ImplicitSin {
             }
         }
 
-        if (SIZE * 2 >= 0) System.arraycopy(uIterCur, 0, z_impl_2[n], 0, SIZE * 2);
+        for (int i = 1; i < SIZE * 2 - 1; i++) {
+            z_impl_2[n][i] = uIterCur[i];
+        }
+
     }
 
-    private void impl_sin(int n) {
+    private void impl_sin(int n, double tau_) {
         for (int i = 0; i < SIZE; i++) {
             b[i] = c[i] = d[i] = 0;
             uIterPrev[i] = 1;
@@ -215,11 +209,11 @@ public class ImplicitSin {
 
             for(int i = 0; i < SIZE; i++) {
                 if (i != 0) {
-                    b[i] = (-1) * uIterPrev[i - 1] * tau / (2 * h);
+                    b[i] = (-1) * uIterPrev[i - 1] * tau_ / (2 * h);
                 }
                 d[i] = z_impl[n - 1][i];
                 if (i != SIZE - 1) {
-                    c[i] = uIterPrev[i + 1] * tau / (2 *  h);
+                    c[i] = uIterPrev[i + 1] * tau_ / (2 *  h);
                 }
             }
 
@@ -250,13 +244,13 @@ public class ImplicitSin {
 
             writer.println("Point" + ";"  + "Me Func" + ";" + "Me Func x2" );
 
-            for (int i = 0; i < SIZEY; i++) {
-                String result = String.format("%.3f;%.3f;%.3f;\n", (i * (x_end - x_start) / SIZEY + 0.001), z_impl[SIZE / 2][i],
-                        z_impl_2[SIZE][i * 2]).replace('.', ',');
+            for (int i = 0; i < SIZE; i++) {
+                String result = String.format("%.3f;%.3f;%.3f;\n", (i * (x_end - x_start) / SIZE + 0.001),
+                        z_impl[SIZEY / 2][i],
+                        z_impl_2[SIZEY][i * 2]).replace('.', ',');
                 writer.printf(result);
             }
             writer.close();
-            SIZE = SIZEY;
         } catch (IOException e) {
             System.err.println("Error while writing file:" + e.getLocalizedMessage());
         } finally {
@@ -265,5 +259,4 @@ public class ImplicitSin {
             }
         }
     }
-
 }

@@ -13,7 +13,7 @@ public class ImplicitAB {
     private double[][] z_impl_ab, z_real_ab, z_impl_ab_2;
     private double x_start, x_end, y_end, h, tau, a, r;
     private int SIZE = 50;
-    private int SIZEY;
+    private int SIZEY = 25;
     private final double a_ab = 3.0;
     private double b_ab = 1;
     private double[] x;
@@ -23,66 +23,48 @@ public class ImplicitAB {
 
     public void work() {
         double tmp;
-        SIZEY = SIZE;
         fillData();
         initZeroLevel();
         realSolution_ab();
-        for (int i = 1; i < SIZE; i++) {
-            if (findMaxConst(i - 1)) {
-                tmp = countTau(i);
-                impl_ab(i, tmp);
-            }
-            else
-                System.out.println("ААААААААААА ВСЕ ПЛОХО Я УСТАЛА АААААААААААА");
+        for (int i = 1; i < SIZEY; i++) {
+            tmp = countTau(i);
+            impl_ab(i, tmp);
+
         }
 
         initZeroLevel2();
-        for (int i = 1; i < SIZE * 2; i++) {
-            if (findMaxConst2(i - 1)) {
-                tmp = countTau2(i);
-                impl_ab_2(i, tmp);
-            }
-            else
-                System.out.println("ААААААААААА ВСЕ ПЛОХО Я УСТАЛА АААААААААААА");
+        for (int i = 1; i < SIZEY * 2; i++) {
+            tmp = countTau2(i);
+            impl_ab_2(i, tmp);
         }
         writeFirst();
     }
 
     private void fillData() {
-        SIZEY = SIZE;
-        x_start = -1;
-        x_end = 9;
-        y_end = 2;
-        h = (x_end - x_start) / SIZE;
-        System.out.println("h = " + h);
-        tau = (y_end) / SIZEY;
-        System.out.println("tau = " + tau);
+        SIZE = 50;
+        SIZEY = 25;
+        h = 0.2;
         a = 2;
+        tau = 0.1;
+        x_start = -1;
+        x_end = (h * SIZE) + x_start;
+        y_end = tau * SIZEY;
+        System.out.println("Нелинейная неявная схема AB. x_end = " + x_end + " y_end = " + y_end);
+        r = a * tau / h;
+        System.out.println("r = " + r);
 
-        if (a * tau / h <= 1 && a * tau / h >= 0) {
-            r = a * tau / h;
-            System.out.println("r = " + r);
-        } else {
-            System.out.println("Поменяйте параметры, пожалуйста");
-            System.exit(0);
-        }
-
-        z_impl = new double[SIZE][SIZEY];
-        z_impl_2 = new double[SIZE * 2][SIZEY * 2];
-        z_real = new double[SIZE][SIZEY];
-
-        z_impl_ab = new double[SIZE][SIZEY];
-        z_impl_ab_2 = new double[SIZE * 2][SIZEY * 2];
-        z_real_ab = new double[SIZE][SIZEY];
+        z_impl = new double[SIZEY][SIZE];
+        z_impl_2 = new double[SIZEY * 2][SIZE * 2];
+        z_real_ab = new double[SIZEY][SIZE];
 
         x = new double[3];
-        b = new double[SIZEY * 2];
-        c = new double[SIZEY * 2];
-        d = new double[SIZEY * 2];
-        k = new double[SIZEY * 2];
-        u = new double[SIZEY * 2];
-        uIterPrev = new double[SIZEY * 2];
-        uIterCur = new double[SIZEY * 2];
+        b = new double[SIZE * 2];
+        c = new double[SIZE * 2];
+        d = new double[SIZE * 2];
+        k = new double[SIZE * 2];
+        u = new double[SIZE * 2];
+        uIterPrev = new double[SIZE * 2];
+        uIterCur = new double[SIZE * 2];
     }
 
     private double func_ab(double x) {
@@ -132,17 +114,20 @@ public class ImplicitAB {
         }
         return 0.2 * h / max;
     }
+
     private void realSolution_ab() {
         for (int i = 0; i < SIZE; i++) {
             z_real_ab[0][i] = func_ab((x_start + i * h));
-//            z_real_ab[i][0] = func_ab((x_start));
-//            z_real_ab[i][SIZE - 1] = func_ab((x_end));
         }
 
-        for (int i = 1; i < SIZE; i++) {
-            for (int j = 0; j < SIZEY; j++) {
+        for (int i = 0; i < SIZEY; i++) {
+            z_real_ab[i][0] = func_ab((x_start));
+            z_real_ab[i][SIZE - 1] = func_ab((x_end));
+        }
+
+        for (int i = 1; i < SIZEY; i++) {
+            for (int j = 0; j < SIZE; j++) {
                 z_real_ab[i][j] = func_ab((x_start + j * h) - f(z_real_ab[i - 1][j]) * (i * tau));
-//                System.out.println("AB: " + z_real_ab[j][i]);
             }
         }
     }
@@ -152,8 +137,6 @@ public class ImplicitAB {
         for (int i = 0; i < SIZEY; i++) {
             for (int j = 0; j < SIZE; j++) {
                 z_impl[i][j] = 0;
-                z_impl[j][0] = a_ab;
-                z_impl[j][SIZE - 1] = b_ab;
             }
         }
 
@@ -161,6 +144,10 @@ public class ImplicitAB {
         for (int i = 0; i < SIZE; i++) {
             z_impl[0][i] = func_ab(x_h);
             x_h += h;
+        }
+        for (int i = 1; i < SIZEY; i++) {
+            z_impl[i][0] = z_impl[0][0];
+            z_impl[i][SIZE - 1] = z_impl[0][SIZE - 1];
         }
     }
 
@@ -204,8 +191,6 @@ public class ImplicitAB {
         for (int i = 0; i < SIZEY * 2; i++) {
             for (int j = 0; j < SIZE * 2; j++) {
                 z_impl_2[i][j] = 0;
-                z_impl_2[j][0] = a_ab;
-                z_impl_2[j][SIZE * 2 - 1] = b_ab;
             }
         }
 
@@ -214,10 +199,14 @@ public class ImplicitAB {
             z_impl_2[0][i] = func_ab(x_h);
             x_h += new_h;
         }
+        for (int i = 1; i < SIZEY * 2; i++) {
+            z_impl_2[i][0] = z_impl_2[0][0];
+            z_impl_2[i][SIZE * 2 - 1] = z_impl_2[0][SIZE * 2 - 1];
+        }
     }
 
     private void impl_ab_2(int n, double tau_) {
-        for (int i = 0; i < SIZE * 2; i++) {
+        for (int i = 0; i < SIZE; i++) {
             b[i] = c[i] = d[i] = 0;
             uIterPrev[i] = 1;
             uIterCur[i] = 0;
@@ -255,7 +244,9 @@ public class ImplicitAB {
             }
         }
 
-        if (SIZE * 2 >= 0) System.arraycopy(uIterCur, 0, z_impl_2[n], 0, SIZE * 2);
+        for (int i = 1; i < SIZE * 2 - 1; i++) {
+            z_impl_2[n][i] = uIterCur[i];
+        }
     }
 
     private void impl_ab(int n, double tau_) {
@@ -273,11 +264,11 @@ public class ImplicitAB {
 
             for(int i = 0; i < SIZE; i++) {
                 if (i != 0) {
-                    b[i] = (-0.25) * uIterPrev[i - 1] * tau_ / (h);
+                    b[i] = (-0.2) * uIterPrev[i - 1] * tau_ / (h);
                 }
                 d[i] = z_impl[n - 1][i];
                 if (i != SIZE - 1) {
-                    c[i] = 0.25 * uIterPrev[i + 1] * tau_ / (h);
+                    c[i] = 0.2 * uIterPrev[i + 1] * tau_ / (h);
                 }
             }
 
@@ -297,7 +288,7 @@ public class ImplicitAB {
             }
         }
 
-        for (int i = 0; i < SIZE; i++) {
+        for (int i = 1; i < SIZE - 1; i++) {
             z_impl[n][i] = uIterCur[i];
         }
     }
@@ -310,19 +301,13 @@ public class ImplicitAB {
 
             writer.println("Point" + ";Real;"  + "Me Func" + ";" + "Me Func x2" );
 
-            for (int i = 0; i < SIZEY; i++) {
-                if (i < 3) {
-                    z_impl_2[SIZE / 2][i * 2] += 0.7;
-                    z_impl[SIZE / 4][i] += 0.3;
-                }
-
-                String result = String.format("%.3f;%.3f;%.3f;%.3f;\n", (i * (x_end - x_start) / SIZEY + 0.001),
-                        z_real_ab[SIZE / 4][i], z_impl_2[SIZE / 2][i * 2],
-                        z_impl[SIZE / 4][i]).replace('.', ',');
+            for (int i = 0; i < SIZE; i++) {
+                String result = String.format("%.3f;%.3f;%.3f;%.3f;\n", (i * (x_end - x_start) / SIZE + 0.001),
+                        z_real_ab[SIZEY / 3][i],
+                        z_impl[SIZEY / 3][i], z_impl_2[SIZEY * 2 / 3][i * 2]).replace('.', ',');
                 writer.printf(result);
             }
             writer.close();
-            SIZE = SIZEY;
         } catch (IOException e) {
             System.err.println("Error while writing file:" + e.getLocalizedMessage());
         } finally {

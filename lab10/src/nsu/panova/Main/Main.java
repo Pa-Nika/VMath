@@ -17,11 +17,11 @@ public class Main {
         CrossSin cross = new CrossSin();
         cross.work();
 
-        ImplicitSin implicitSin = new ImplicitSin();
-        implicitSin.work();
-
         CrossAB crossAB = new CrossAB();
         crossAB.work();
+
+        ImplicitSin implicitSin = new ImplicitSin();
+        implicitSin.work();
 
         ImplicitAB implicitAB = new ImplicitAB();
         implicitAB.work();

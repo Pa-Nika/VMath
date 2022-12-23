@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import static java.lang.Math.abs;
 import static java.lang.Math.sin;
 
+//Тут нужно разобраться с SIZE и SIZEY
+
 public class Implicit {
     private double[][] z_impl, z_real, z_impl_2;
     private double[][] z_impl_ab, z_real_ab, z_impl_ab_2;
@@ -39,7 +41,7 @@ public class Implicit {
         SIZEY = SIZE;
         x_start = -2;
         x_end = 8;
-        y_end = 2;
+        y_end = 10;
         h = (x_end - x_start) / SIZE;
         System.out.println("h = " + h);
         tau = (y_end) / SIZEY;
@@ -48,10 +50,11 @@ public class Implicit {
 
         if (a * tau / h <= 1 && a * tau / h >= 0) {
             r = a * tau / h;
+
             System.out.println("r = " + r);
         } else {
             System.out.println("Поменяйте параметры, пожалуйста");
-            System.exit(0);
+//            System.exit(0);
         }
 
         z_impl = new double[SIZE][SIZEY];
@@ -90,7 +93,6 @@ public class Implicit {
 
     private void impl_sin_2() {
         double new_h = h / 2;
-        RunThrough run = new RunThrough();
         double x_h = x_start;
         for (int i = 0; i < SIZE * 2; i++) {
             for (int j = 0; j < SIZEY * 2; j++) {
@@ -107,14 +109,12 @@ public class Implicit {
         //Остальные слои
         for (int j = 1; j < SIZEY * 2 - 1; j++) {
             for (int i = 1; i < SIZE * 2 - 1; i++) {
-//                z_impl_2[i][j] = run.work(r, z_impl_2[i - 1][j - 1], z_impl_2[i][j - 1], z_impl_2[i + 1][j - 1]);
                 z_impl_2[i][j] = run(r, z_impl_2[i - 1][j - 1], z_impl_2[i][j - 1], z_impl_2[i + 1][j - 1]);
             }
         }
     }
 
     private void impl_sin() {
-        RunThrough run = new RunThrough();
         double x_h = x_start;
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZEY; j++) {
@@ -131,27 +131,24 @@ public class Implicit {
         //Остальные слои
         for (int j = 1; j < SIZE - 1; j++) {
             for (int i = 1; i < SIZEY - 1; i++) {
-//                z_impl[i][j] = run.work(r, z_impl[i - 1][j - 1], z_impl[i][j - 1], z_impl[i + 1][j - 1]);
                 z_impl[i][j] = run(r, z_impl[i - 1][j - 1], z_impl[i][j - 1], z_impl[i + 1][j - 1]);
             }
         }
     }
 
     private void writeFirst() {
-        this.SIZE = 2;
         PrintWriter writer = null;
         try {
             File fout = new File("output_sin_impl.csv");
             writer = new PrintWriter(fout);
 
             writer.println("Point" + ";" + "Real Func" + ";" + "Me Func" + ";" + "Me Func x2" + ";" + "Difference");
-            for (int i = 0; i < SIZEY; i++) {
-                String result = String.format("%.3f;%.3f;%.3f;%.3f;%.3f\n", (i * (x_end - x_start) / SIZEY + 0.001), z_real[i][SIZE / 2], z_impl_2[i * 2][SIZE],
-                        z_impl[i][SIZE / 2], abs(z_real[i][SIZEY / 2] - z_impl_2[i * 2][SIZEY])).replace('.', ',');
+            for (int i = 0; i < SIZE; i++) {
+                String result = String.format("%.3f;%.3f;%.3f;%.3f;%.3f\n", (i * (x_end - x_start) / SIZE + 0.001), z_real[i][SIZEY / 2], z_impl_2[i * 2][SIZEY],
+                        z_impl[i][SIZEY / 2], abs(z_real[i][SIZEY / 2] - z_impl_2[i * 2][SIZEY])).replace('.', ',');
                 writer.printf(result);
             }
             writer.close();
-            SIZE = SIZEY;
         } catch (IOException e) {
             System.err.println("Error while writing file:" + e.getLocalizedMessage());
         } finally {
@@ -242,7 +239,6 @@ public class Implicit {
     private void impl_ab_2() {
         double new_h = h / 2;
         double x_h = x_start;
-        RunThrough run = new RunThrough();
         for (int i = 0; i < SIZE * 2; i++) {
             for (int j = 0; j < SIZEY * 2; j++) {
                 z_impl_ab_2[i][j] = 0;
@@ -274,7 +270,6 @@ public class Implicit {
 
     private void impl_ab() {
         double x_h = x_start;
-        RunThrough run = new RunThrough();
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZEY; j++) {
                 z_impl_ab[i][j] = 0;
@@ -292,7 +287,6 @@ public class Implicit {
         //Остальные слои
         for(int i = 2; i < SIZEY - 1; i++) {
             for (int j = 1; j < SIZE - 1; j++) {
-//                z_impl_ab[i][j] = run.work(r, z_impl_ab[i - 1][j - 1], z_impl_ab[i][j - 1], z_impl_ab[i + 1][j - 1]);
                 z_impl_ab[j][i] = z_impl_ab[j][i - 2] - r * (z_impl_ab[j + 1][i - 1] - z_impl_ab[j - 1][i - 1]);
             }
         }
@@ -302,9 +296,7 @@ public class Implicit {
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZEY; j++) {
                 z_real_ab[i][j] = func_ab((x_start + i * h) - a * (j * tau));
-//                System.out.println("Real solution = " + z[i][j]);
             }
-//            System.out.println("\n");
         }
     }
 
@@ -319,8 +311,8 @@ public class Implicit {
             for (int i = 0; i < SIZE; i++) {
                 String result = String.format("%.3f;%.3f;%.3f;%.3f;;%.3f;%.3f;%.3f;\n", (i * (x_end - x_start) / SIZE + 0.001),
                         z_real_ab[i][SIZE / 2], z_impl_ab[i][SIZE / 2] + 1,
-                        z_impl_ab_2[i * 2][SIZE], (i * (x_end - x_start) / SIZE + 0.001), abs(z_real_ab[i][SIZE / 2] - z_impl_ab[i][SIZE / 2]),
-                        abs(z_real_ab[i][SIZE / 2] - z_impl_ab[i][SIZE / 2] + 1)).replace('.', ',');
+                        z_impl_ab_2[i * 2][SIZE], (i * (x_end - x_start) / SIZE + 0.001), abs(z_real_ab[i][SIZEY / 2] - z_impl_ab_2[i * 2][SIZEY]),
+                        abs(z_real_ab[i][SIZEY / 2] - z_impl_ab[i][SIZEY / 2] + 1)).replace('.', ',');
                 writer.printf(result);
             }
             writer.close();

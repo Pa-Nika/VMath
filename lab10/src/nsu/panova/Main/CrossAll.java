@@ -12,7 +12,7 @@ public class CrossAll {
     private double[][] z_cross_ab, z_real_ab, z_cross_ab_2;
     private double x_start, x_end, y_end, h, tau, a, r;
     private final int SIZE = 50;
-    private final int SIZEY = 50;
+    private final int SIZEY = 25;
     private final double a_ab = 3.0;
     private double b_ab = 1;
 
@@ -115,7 +115,7 @@ public class CrossAll {
     private void fillData() {
         x_start = 0;
         x_end = 10;
-        y_end = 2;
+        y_end = 2.5;
         h = (x_end - x_start) / SIZE;
         System.out.println("h = " + h);
         tau = (y_end) / SIZEY;
@@ -123,6 +123,9 @@ public class CrossAll {
 
         if (a * tau / h <= 1 && a * tau / h >= 0) {
             r = a * tau / h;
+//            r = 1;
+//            h = 0.1;
+//            tau = 0.2;
             System.out.println("r = " + r);
         }
         else {
@@ -148,8 +151,8 @@ public class CrossAll {
             writer.println("Point"+ ";" + "Real Func" + ";" + "Me Func" + ";" + "Me Func x2" + ";" + "Difference");
 
             for (int i = 0; i < SIZE; i++) {
-                String result = String.format("%.3f;%.3f;%.3f;%.3f;%.3f\n", (i * (x_end - x_start) / SIZE + 0.001), z_real[i][SIZE / 2], z_cross[i][SIZE / 2],
-                        z_cross_2[i * 2][SIZE], abs(z_real[i][SIZE / 2] - z_cross[i][SIZE / 2])).replace('.', ',');
+                String result = String.format("%.3f;%.3f;%.3f;%.3f;%.3f\n", (i * (x_end - x_start) / SIZE + 0.001), z_real[i][SIZEY / 2], z_cross[i][SIZEY / 2],
+                        z_cross_2[i * 2][SIZEY], abs(z_real[i][SIZEY / 2] - z_cross[i][SIZEY / 2])).replace('.', ',');
                 writer.printf(result);
             }
             writer.close();
@@ -258,9 +261,9 @@ public class CrossAll {
             writer.println("Point"+ ";" + "Real Func" + ";" + "Me Func" + ";" + "Me Func x2" + ";" + ";Point;Difference1" + ";" + "Difference2");
 
             for (int i = 0; i < SIZE; i++) {
-                String result = String.format("%.3f;%.3f;%.3f;%.3f;;%.3f;%.3f;%.3f;\n", (i * (x_end - x_start) / SIZE + 0.001), z_real_ab[i][SIZE / 2], z_cross_ab[i][SIZE / 2],
-                        z_cross_ab_2[i * 2][SIZE], (i * (x_end - x_start) / SIZE + 0.001), abs(z_real_ab[i][SIZE / 2] - z_cross_ab[i][SIZE / 2]),
-                        abs(z_real_ab[i][SIZE / 2] - z_cross_ab_2[i*2][SIZE])).replace('.', ',');
+                String result = String.format("%.3f;%.3f;%.3f;%.3f;;%.3f;%.3f;%.3f;\n", (i * (x_end - x_start) / SIZE + 0.001), z_real_ab[i][SIZEY - 5], z_cross_ab[i][SIZEY - 5],
+                        z_cross_ab_2[i * 2][SIZEY * 2 - 10], (i * (x_end - x_start) / SIZE + 0.001), abs(z_real_ab[i][SIZEY / 2] - z_cross_ab[i][SIZEY / 2]),
+                        abs(z_real_ab[i][SIZEY / 2] - z_cross_ab_2[i*2][SIZEY])).replace('.', ',');
                 writer.printf(result);
             }
             writer.close();
